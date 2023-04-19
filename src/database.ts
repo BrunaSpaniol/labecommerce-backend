@@ -17,28 +17,29 @@ export const products: Array<TProduct> = [
   {
     id: "pao123",
     name: "pao",
-    price: 5.0,
+    price: 5,
     category: "food",
   },
   {
     id: "sabao124",
     name: "sabão",
-    price: 10.0,
+    price: 10,
     category: "cleaning",
   },
 ];
+
 
 export const purchase : Array<TPurchase> = [
   {
     userId: users[0].id,
     productId: products[1].id,
     quantity: 5,
-    get totalPrice(){ return products[1].price* this.quantity}
+    totalPrice: products[1].price *5
   },
   {
     userId: users[1].id,
-    productId: products[0].id,
+    productId: products[1].id,
     quantity: 5,
-    get totalPrice(){ return products[0].price* this.quantity}
+    totalPrice: products[1].price*5 
   },
 ];

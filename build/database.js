@@ -17,13 +17,13 @@ exports.products = [
     {
         id: "pao123",
         name: "pao",
-        price: 5.0,
+        price: 5,
         category: "food",
     },
     {
         id: "sabao124",
         name: "sabão",
-        price: 10.0,
+        price: 10,
         category: "cleaning",
     },
 ];
@@ -32,13 +32,13 @@ exports.purchase = [
         userId: exports.users[0].id,
         productId: exports.products[1].id,
         quantity: 5,
-        totalPrice: exports.products[1].price * 5,
+        get totalPrice() { return exports.products[1].price * this.quantity; }
     },
     {
-        userId: "125",
-        productId: "manteiga",
+        userId: exports.users[1].id,
+        productId: exports.products[1].id,
         quantity: 5,
-        totalPrice: 15,
+        get totalPrice() { return exports.products[1].price * this.quantity; }
     },
 ];
 //# sourceMappingURL=database.js.map

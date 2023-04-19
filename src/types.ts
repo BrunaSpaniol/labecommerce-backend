@@ -20,5 +20,5 @@ export type TPurchase = {
     userId: TUser['id'];
     productId: TProduct['id'];
     quantity: number;
-    totalPrice: number
+    totalPrice: number;
 }
