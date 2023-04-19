@@ -1,18 +1,20 @@
-export type UserId = string
-
-export type ProductId= string;
+export enum category{
+    FOOD = "food",
+    CLEANING = "cleaning",
+    ELECTRONICS = "Eletrônicos"
+}
 
 export type TUser = {
-    id: UserId;
+    id: string;
     email: string;
     password: string
 }
 
 export type TProduct = {
-    id: ProductId;
+    id: string;
     name: string;
     price: number;
-    category:string
+    category:category;
 }
 
 
