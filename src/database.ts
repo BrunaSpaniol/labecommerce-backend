@@ -1,4 +1,4 @@
-import { TProduct, TUser } from "./types";
+import { TProduct, TPurchase, TUser } from "./types";
 
 export const users: Array<TUser> = [
   {
@@ -28,17 +28,17 @@ export const products: Array<TProduct> = [
   },
 ];
 
-export const purchase = [
+export const purchase : Array<TPurchase> = [
   {
     userId: users[0].id,
     productId: products[1].id,
     quantity: 5,
-    totalPrice: products[1].price * 5,
+    get totalPrice(){ return products[1].price* this.quantity}
   },
   {
-    userId: "125",
-    productId: "manteiga",
+    userId: users[1].id,
+    productId: products[0].id,
     quantity: 5,
-    totalPrice: 15,
+    get totalPrice(){ return products[0].price* this.quantity}
   },
 ];
