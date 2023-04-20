@@ -30,13 +30,13 @@ export const products: Array<TProduct> = [
 
 export const purchase: Array<TPurchase> = [
   {
-    userId: users[0].id,
+    userId: "123",
     productId: products[1].id,
     quantity: 5,
     totalPrice: 25,
   },
   {
-    userId: users[1].id,
+    userId: "124",
     productId: products[1].id,
     quantity: 5,
     totalPrice: 50,
@@ -67,7 +67,8 @@ export function getAllProducts() {
 export function getProductById(idToSearch: string) {
   const searchProduct = products.find((product) => product.id === idToSearch);
   if (searchProduct) {
-    return searchProduct;
+    console.log("objeto product encontrado")
+    return searchProduct; 
   }
   console.log("undefined");
 }
@@ -88,9 +89,24 @@ export function createPurchase(
 }
 
 export function getAllPurchasesFromUserId(userIdToSearch: string) {
-  const filteredPurchases = purchase.filter(
-    ({ userId }) => userId === userIdToSearch
-  );
+  const filteredPurchases = purchase.filter(({ userId }) => {
+    return userId === userIdToSearch;
+  });
+  if (filteredPurchases) {
+    console.log("objeto array de compras do user procurado encontrado");
+    return filteredPurchases;
+  }
+  return undefined;
+}
 
-  return filteredPurchases;
+export function deleteUser(userIdToDelete: string){
+  return users.findIndex(({id}) => {
+    return id === userIdToDelete;
+  });
+}
+
+export function deleteProduct(productIdToDelete: string){
+  return products.findIndex(({id}) => {
+    return id === productIdToDelete;
+  });
 }

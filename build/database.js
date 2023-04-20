@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getAllPurchasesFromUserId = exports.createPurchase = exports.queryProductsByName = exports.getProductById = exports.getAllProducts = exports.createProduct = exports.getAllUsers = exports.createUser = exports.purchase = exports.products = exports.users = void 0;
+exports.deleteProduct = exports.deleteUser = exports.getAllPurchasesFromUserId = exports.createPurchase = exports.queryProductsByName = exports.getProductById = exports.getAllProducts = exports.createProduct = exports.getAllUsers = exports.createUser = exports.purchase = exports.products = exports.users = void 0;
 const types_1 = require("./types");
 exports.users = [
     {
@@ -30,13 +30,13 @@ exports.products = [
 ];
 exports.purchase = [
     {
-        userId: exports.users[0].id,
+        userId: "123",
         productId: exports.products[1].id,
         quantity: 5,
         totalPrice: 25,
     },
     {
-        userId: exports.users[1].id,
+        userId: "124",
         productId: exports.products[1].id,
         quantity: 5,
         totalPrice: 50,
@@ -61,6 +61,7 @@ exports.getAllProducts = getAllProducts;
 function getProductById(idToSearch) {
     const searchProduct = exports.products.find((product) => product.id === idToSearch);
     if (searchProduct) {
+        console.log("objeto product encontrado");
         return searchProduct;
     }
     console.log("undefined");
@@ -77,8 +78,26 @@ function createPurchase(userId, productId, quantity, totalPrice) {
 }
 exports.createPurchase = createPurchase;
 function getAllPurchasesFromUserId(userIdToSearch) {
-    const filteredPurchases = exports.purchase.filter(({ userId }) => userId === userIdToSearch);
-    return filteredPurchases;
+    const filteredPurchases = exports.purchase.filter(({ userId }) => {
+        return userId === userIdToSearch;
+    });
+    if (filteredPurchases) {
+        console.log("objeto array de compras do user procurado encontrado");
+        return filteredPurchases;
+    }
+    return undefined;
 }
 exports.getAllPurchasesFromUserId = getAllPurchasesFromUserId;
+function deleteUser(userIdToDelete) {
+    return exports.users.findIndex(({ id }) => {
+        return id === userIdToDelete;
+    });
+}
+exports.deleteUser = deleteUser;
+function deleteProduct(productIdToDelete) {
+    return exports.products.findIndex(({ id }) => {
+        return id === productIdToDelete;
+    });
+}
+exports.deleteProduct = deleteProduct;
 //# sourceMappingURL=database.js.map
