@@ -1,4 +1,4 @@
-import { TProduct, TPurchase, TUser } from "./types";
+import { category, TProduct, TPurchase, TUser } from "./types";
 
 export const users: Array<TUser> = [
   {
@@ -18,28 +18,79 @@ export const products: Array<TProduct> = [
     id: "pao123",
     name: "pao",
     price: 5,
-    category: "food",
+    category: category.FOOD,
   },
   {
     id: "sabao124",
     name: "sabão",
     price: 10,
-    category: "cleaning",
+    category: category.CLEANING,
   },
 ];
 
-
-export const purchase : Array<TPurchase> = [
+export const purchase: Array<TPurchase> = [
   {
     userId: users[0].id,
     productId: products[1].id,
     quantity: 5,
-    totalPrice: products[1].price *5
+    totalPrice: 25,
   },
   {
     userId: users[1].id,
     productId: products[1].id,
     quantity: 5,
-    totalPrice: products[1].price*5 
+    totalPrice: 50,
   },
 ];
+
+export function createUser(id: string, email: string, password: string) {
+  users.push({ id, email, password });
+}
+
+export function getAllUsers() {
+  return users;
+}
+
+export function createProduct(
+  id: string,
+  name: string,
+  price: number,
+  category: category
+) {
+  products.push({ id, name, price, category });
+}
+
+export function getAllProducts() {
+  return products;
+}
+
+export function getProductById(idToSearch: string) {
+  const searchProduct = products.find((product) => product.id === idToSearch);
+  if (searchProduct) {
+    return searchProduct;
+  }
+  console.log("undefined");
+}
+
+export function queryProductsByName(q: string) {
+  return products.filter(({ name }) => {
+    return name.toLowerCase().includes(q.toLowerCase());
+  });
+}
+
+export function createPurchase(
+  userId: string,
+  productId: string,
+  quantity: number,
+  totalPrice: number
+) {
+  purchase.push({ userId, productId, quantity, totalPrice });
+}
+
+export function getAllPurchasesFromUserId(userIdToSearch: string) {
+  const filteredPurchases = purchase.filter(
+    ({ userId }) => userId === userIdToSearch
+  );
+
+  return filteredPurchases;
+}
