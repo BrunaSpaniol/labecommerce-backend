@@ -1,15 +1,19 @@
-import { category, TProduct, TPurchase, TUser } from "./types";
+import { Category, TProduct, TPurchase, TUser } from "./types";
 
 export const users: Array<TUser> = [
   {
     id: "123",
+    name: "regina",
     email: "user123@email.com",
     password: "senha123",
+    createdAt: new Date().toLocaleString(),
   },
   {
     id: "124",
+    name: "Gabi",
     email: "user124@email.com",
     password: "senha124",
+    createdAt: new Date().toLocaleString(),
   },
 ];
 
@@ -18,13 +22,17 @@ export const products: Array<TProduct> = [
     id: "pao123",
     name: "pao",
     price: 5,
-    category: category.FOOD,
+    description: "string",
+    imageUrl: "string",
+    category: Category.FOOD,
   },
   {
     id: "sabao124",
     name: "sabão",
     price: 10,
-    category: category.CLEANING,
+    description: "string",
+    imageUrl: "string",
+    category: Category.CLEANING,
   },
 ];
 
@@ -43,8 +51,19 @@ export const purchase: Array<TPurchase> = [
   },
 ];
 
-export function createUser(id: string, email: string, password: string) {
-  users.push({ id, email, password });
+export function createUser(
+  id: string,
+  name: string,
+  email: string,
+  password: string
+) {
+  users.push({
+    id,
+    email,
+    name,
+    password,
+    createdAt: new Date().toLocaleString(),
+  });
 }
 
 export function getAllUsers() {
@@ -55,9 +74,11 @@ export function createProduct(
   id: string,
   name: string,
   price: number,
-  category: category
+  description: string,
+  imageUrl: string,
+  category: Category
 ) {
-  products.push({ id, name, price, category });
+  products.push({ id, name, price, description, imageUrl, category });
 }
 
 export function getAllProducts() {
@@ -67,8 +88,8 @@ export function getAllProducts() {
 export function getProductById(idToSearch: string) {
   const searchProduct = products.find((product) => product.id === idToSearch);
   if (searchProduct) {
-    console.log("objeto product encontrado")
-    return searchProduct; 
+    console.log("objeto product encontrado");
+    return searchProduct;
   }
   console.log("undefined");
 }
@@ -99,14 +120,23 @@ export function getAllPurchasesFromUserId(userIdToSearch: string) {
   return undefined;
 }
 
-export function deleteUser(userIdToDelete: string){
-  return users.findIndex(({id}) => {
+export function deleteUser(userIdToDelete: string) {
+  return users.findIndex(({ id }) => {
     return id === userIdToDelete;
   });
 }
 
-export function deleteProduct(productIdToDelete: string){
-  return products.findIndex(({id}) => {
+export function deleteProduct(productIdToDelete: string) {
+  return products.findIndex(({ id }) => {
     return id === productIdToDelete;
   });
+}
+export function validateCategory(value: string) {
+  let isCategory = false;
+  for (let type in Category) {
+    if (type === value) {
+      isCategory = true;
+    }
+  }
+  return isCategory;
 }

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteProduct = exports.deleteUser = exports.getAllPurchasesFromUserId = exports.createPurchase = exports.queryProductsByName = exports.getProductById = exports.getAllProducts = exports.createProduct = exports.getAllUsers = exports.createUser = exports.purchase = exports.products = exports.users = void 0;
+exports.validateCategory = exports.deleteProduct = exports.deleteUser = exports.getAllPurchasesFromUserId = exports.createPurchase = exports.queryProductsByName = exports.getProductById = exports.getAllProducts = exports.createProduct = exports.getAllUsers = exports.createUser = exports.purchase = exports.products = exports.users = void 0;
 const types_1 = require("./types");
 exports.users = [
     {
@@ -19,13 +19,13 @@ exports.products = [
         id: "pao123",
         name: "pao",
         price: 5,
-        category: types_1.category.FOOD,
+        category: types_1.Category.FOOD,
     },
     {
         id: "sabao124",
         name: "sabão",
         price: 10,
-        category: types_1.category.CLEANING,
+        category: types_1.Category.CLEANING,
     },
 ];
 exports.purchase = [
@@ -100,4 +100,14 @@ function deleteProduct(productIdToDelete) {
     });
 }
 exports.deleteProduct = deleteProduct;
+function validateCategory(value) {
+    let isCategory = false;
+    for (let type in types_1.Category) {
+        if (type === value) {
+            isCategory = true;
+        }
+    }
+    return isCategory;
+}
+exports.validateCategory = validateCategory;
 //# sourceMappingURL=database.js.map
