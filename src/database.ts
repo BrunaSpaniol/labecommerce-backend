@@ -6,14 +6,14 @@ export const users: Array<TUser> = [
     name: "regina",
     email: "user123@email.com",
     password: "senha123",
-    createdAt: new Date().toLocaleString(),
+    created_at: new Date().toLocaleString(),
   },
   {
     id: "124",
     name: "Gabi",
     email: "user124@email.com",
     password: "senha124",
-    createdAt: new Date().toLocaleString(),
+    created_at: new Date().toLocaleString(),
   },
 ];
 
@@ -36,20 +36,20 @@ export const products: Array<TProduct> = [
   },
 ];
 
-export const purchase: Array<TPurchase> = [
-  {
-    userId: "123",
-    productId: products[1].id,
-    quantity: 5,
-    totalPrice: 25,
-  },
-  {
-    userId: "124",
-    productId: products[1].id,
-    quantity: 5,
-    totalPrice: 50,
-  },
-];
+// export const purchase: Array<TPurchase> = [
+//   {
+//     userId: "123",
+//     productId: products[1].id,
+//     quantity: 5,
+//     totalPrice: 25,
+//   },
+//   {
+//     userId: "124",
+//     productId: products[1].id,
+//     quantity: 5,
+//     totalPrice: 50,
+//   },
+// ];
 
 export function createUser(
   id: string,
@@ -62,7 +62,7 @@ export function createUser(
     email,
     name,
     password,
-    createdAt: new Date().toLocaleString(),
+    created_at: new Date().toLocaleString(),
   });
 }
 
@@ -100,43 +100,43 @@ export function queryProductsByName(q: string) {
   });
 }
 
-export function createPurchase(
-  userId: string,
-  productId: string,
-  quantity: number,
-  totalPrice: number
-) {
-  purchase.push({ userId, productId, quantity, totalPrice });
-}
+// export function createPurchase(
+//   userId: string,
+//   productId: string,
+//   quantity: number,
+//   totalPrice: number
+// ) {
+//   purchase.push({ userId, productId, quantity, totalPrice });
+// }
 
-export function getAllPurchasesFromUserId(userIdToSearch: string) {
-  const filteredPurchases = purchase.filter(({ userId }) => {
-    return userId === userIdToSearch;
-  });
-  if (filteredPurchases) {
-    console.log("objeto array de compras do user procurado encontrado");
-    return filteredPurchases;
-  }
-  return undefined;
-}
+// export function getAllPurchasesFromUserId(userIdToSearch: string) {
+//   const filteredPurchases = purchase.filter(({ userId }) => {
+//     return userId === userIdToSearch;
+//   });
+//   if (filteredPurchases) {
+//     console.log("objeto array de compras do user procurado encontrado");
+//     return filteredPurchases;
+//   }
+//   return undefined;
+// }
 
-export function deleteUser(userIdToDelete: string) {
-  return users.findIndex(({ id }) => {
-    return id === userIdToDelete;
-  });
-}
+// export function deleteUser(userIdToDelete: string) {
+//   return users.findIndex(({ id }) => {
+//     return id === userIdToDelete;
+//   });
+// }
 
-export function deleteProduct(productIdToDelete: string) {
-  return products.findIndex(({ id }) => {
-    return id === productIdToDelete;
-  });
-}
-export function validateCategory(value: string) {
-  let isCategory = false;
-  for (let type in Category) {
-    if (type === value) {
-      isCategory = true;
-    }
-  }
-  return isCategory;
-}
+// export function deleteProduct(productIdToDelete: string) {
+//   return products.findIndex(({ id }) => {
+//     return id === productIdToDelete;
+//   });
+// }
+// export function validateCategory(value: string) {
+//   let isCategory = false;
+//   for (let type in Category) {
+//     if (type === value) {
+//       isCategory = true;
+//     }
+//   }
+//   return isCategory;
+// }

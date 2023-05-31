@@ -13,7 +13,7 @@ export type TUser = {
   name: string;
   email: string;
   password: string;
-  createdAt: string;
+  created_at: string;
 };
 
 export type TProduct = {
@@ -26,8 +26,9 @@ export type TProduct = {
 };
 
 export type TPurchase = {
-  userId: TUser["id"];
-  productId: TProduct["id"];
-  quantity: number;
+  id: string;
+  buyer: string;
   totalPrice: number;
+  createdAt?: number;
+  paid: number;
 };
