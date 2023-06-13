@@ -39,7 +39,15 @@ export type TPurchaseProducts = {
 };
 
 export type TPurchaseProductsComplete = {
-  id: TPurchase["id"];
+  purchase_id: TPurchase["id"];
   product_id: TProduct["id"];
   quantity: number;
+};
+
+export type TPurchaseUpdate = {
+  id: string;
+  buyer_id: string;
+  totalPrice?: number;
+  createdAt?: number;
+  paid?: number;
 };

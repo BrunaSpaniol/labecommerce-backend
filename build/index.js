@@ -283,43 +283,33 @@ app.post("/purchase", (req, res) => __awaiter(void 0, void 0, void 0, function* 
     try {
         const { id, buyer, products } = req.body;
         if (typeof id !== "string" || typeof buyer !== "string") {
-            res.status(400);
-            throw new Error("todos os inputs devem ser do tipo correto");
+            throw new Error("Todos os inputs devem ser do tipo correto");
         }
         if (!id || !buyer) {
-            res.status(400);
-            throw new Error("todos os inputs devem ser preenchidos");
+            throw new Error("Todos os inputs devem ser preenchidos");
         }
-        const [purchaseExist] = yield (0, knex_1.db)("purchase").where({ id: id });
-        if (!!purchaseExist) {
-            res.status(400);
+        const [purchaseExist] = yield (0, knex_1.db)("purchase").where({ id });
+        if (purchaseExist) {
             throw new Error("O 'id' da compra já existe");
         }
         const [userExist] = yield (0, knex_1.db)("users").where({ id: buyer });
         if (!userExist) {
-            res.status(400);
-            throw new Error("o usuário não existe");
+            throw new Error("O usuário não existe");
         }
-        let newPurchase = {
-            id: id,
+        const newPurchase = {
+            id,
             buyer_id: buyer,
             total_price: 0,
         };
         yield knex_1.db.insert(newPurchase).into("purchase");
-        products.forEach((product) => __awaiter(void 0, void 0, void 0, function* () {
-            try {
-                yield insertProducts(product, newPurchase);
-            }
-            catch (error) {
-                res.status(400);
-                throw new Error("Produto não encontrado");
-            }
-        }));
+        for (const product of products) {
+            yield insertProduct(product, newPurchase);
+        }
         res.status(200).send("Compra cadastrada com sucesso!");
     }
     catch (error) {
         console.log(error);
-        if (req.statusCode === 200) {
+        if (res.statusCode === 200) {
             res.status(500);
         }
         if (error instanceof Error) {
@@ -330,51 +320,46 @@ app.post("/purchase", (req, res) => __awaiter(void 0, void 0, void 0, function* 
         }
     }
 }));
-function insertProducts(product, purchase) {
+function insertProduct(product, purchase) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            const [findProduct] = yield (0, knex_1.db)("products").where({
-                id: product.id,
-            });
-            if (!!findProduct) {
-                const [productExistinPurchase] = yield (0, knex_1.db)("purchases_products")
-                    .select()
-                    .where({
-                    purchase_id: purchase.id,
-                })
-                    .innerJoin("products", "purchases_products.product_id", "=", "products.id");
-                if (!!productExistinPurchase) {
-                    const addQuantity = productExistinPurchase.quantity;
-                    const addProduct = {
-                        id: product.id,
-                        quantity: product.quantity + addQuantity,
-                    };
-                    yield (0, knex_1.db)("purchases_products")
-                        .update(addProduct)
-                        .where({ product_id: product.id })
-                        .andWhere({ purchase_id: purchase.id });
-                    yield (0, knex_1.db)("purchase")
-                        .update(Object.assign(Object.assign({}, purchase), { total_price: purchase.total_price +
-                            (product.quantity + addQuantity * findProduct.price) }))
-                        .where({ id: purchase.id });
-                }
-                const newPurchaseProduct = {
-                    purchase_id: purchase.id,
-                    product_id: product.id,
-                    quantity: product.quantity,
-                };
-                yield (0, knex_1.db)("purchases_products").insert(newPurchaseProduct);
-                yield (0, knex_1.db)("purchase").update(Object.assign(Object.assign({}, purchase), { total_price: product.quantity * findProduct.price }));
+            const [findProduct] = yield (0, knex_1.db)("products").where({ id: product.id });
+            if (!findProduct) {
+                throw new Error("Produto não encontrado");
             }
+            const [productExistinPurchase] = yield (0, knex_1.db)("purchases_products")
+                .where({
+                purchase_id: purchase.id,
+                product_id: product.id,
+            })
+                .innerJoin("products", "purchases_products.product_id", "=", "products.id");
+            const addProduct = {
+                purchase_id: purchase.id,
+                product_id: product.id,
+                quantity: product.quantity,
+            };
+            const purchaseUpdated = Object.assign(Object.assign({}, purchase), { total_price: product.quantity * findProduct.price });
+            if (productExistinPurchase) {
+                const addQuantity = productExistinPurchase.quantity;
+                addProduct.quantity += addQuantity;
+                purchaseUpdated.total_price = addProduct.quantity * findProduct.price;
+                yield (0, knex_1.db)("purchases_products")
+                    .update(addProduct)
+                    .where({ product_id: product.id, purchase_id: purchase.id });
+            }
+            else {
+                yield (0, knex_1.db)("purchases_products").insert(addProduct);
+            }
+            yield (0, knex_1.db)("purchase").update(purchaseUpdated).where({ id: purchase.id });
         }
         catch (error) {
-            console.log("produto não encontrado");
+            throw new Error("Problema no cadastro do produto");
         }
     });
 }
 app.get("/purchase", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const result = yield (0, knex_1.db)("purchase");
+        const result = yield (0, knex_1.db)("purchase").innerJoin("products", "purchases_products.product_id", "=", "products.id");
         res.status(200).send(result);
     }
     catch (error) {

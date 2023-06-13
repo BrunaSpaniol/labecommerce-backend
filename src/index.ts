@@ -2,7 +2,14 @@ import { db } from "./database/knex";
 import express, { Request, Response } from "express";
 import cors from "cors";
 
-import type { TProduct, TPurchase, TPurchaseProducts, TUser } from "./types";
+import type {
+  TProduct,
+  TPurchase,
+  TPurchaseProducts,
+  TPurchaseProductsComplete,
+  TPurchaseUpdate,
+  TUser,
+} from "./types";
 
 const app = express();
 
@@ -383,14 +390,16 @@ app.post("/purchase", async (req: Request, res: Response) => {
 
     await db.insert(newPurchase).into("purchase");
 
-    products.forEach(async (product) => {
-      try {
-        await insertProducts(product, newPurchase);
-      } catch (error) {
-        res.status(400);
-        throw new Error("Produto não encontrado");
-      }
-    });
+    await Promise.all(
+      products.map(async (product) => {
+        try {
+          await insertProducts(product, newPurchase);
+        } catch (error) {
+          res.status(400);
+          throw new Error("problema no cadastro do produto");
+        }
+      })
+    );
 
     res.status(200).send("Compra cadastrada com sucesso!");
   } catch (error) {
@@ -411,18 +420,22 @@ app.post("/purchase", async (req: Request, res: Response) => {
 async function insertProducts(
   product: TPurchaseProducts,
   purchase: { id: string; buyer_id: string; total_price: number }
-): Promise<void> {
+): Promise<Awaited<void>> {
   try {
     const [findProduct] = await db("products").where({
       id: product.id,
     });
 
-    if (!!findProduct) {
+    if (!findProduct) {
+      throw new Error("Produto não encontrado");
+    }
+
+    if (findProduct) {
       const [productExistinPurchase] = await db("purchases_products")
-        .select()
         .where({
           purchase_id: purchase.id,
         })
+        .andWhere({ product_id: product.id })
         .innerJoin(
           "products",
           "purchases_products.product_id",
@@ -430,48 +443,58 @@ async function insertProducts(
           "products.id"
         );
 
-      if (!!productExistinPurchase) {
+      if (productExistinPurchase) {
         const addQuantity: number = productExistinPurchase.quantity;
+
         const addProduct = {
-          id: product.id,
+          purchase_id: purchase.id,
+          product_id: product.id,
           quantity: product.quantity + addQuantity,
         };
+
+        const purchaseUpdated = {
+          ...purchase,
+          total_price: (product.quantity + addQuantity) * findProduct.price,
+        };
+
         await db("purchases_products")
           .update(addProduct)
           .where({ product_id: product.id })
           .andWhere({ purchase_id: purchase.id });
 
-        await db("purchase")
-          .update({
-            ...purchase,
-            total_price:
-              purchase.total_price +
-              (product.quantity + addQuantity * findProduct.price),
-          })
-          .where({ id: purchase.id });
+        await db("purchase").update(purchaseUpdated).where({ id: purchase.id });
       }
-      const newPurchaseProduct = {
-        purchase_id: purchase.id,
-        product_id: product.id,
-        quantity: product.quantity,
-      };
+      if (!productExistinPurchase) {
+        const addProduct = {
+          purchase_id: purchase.id,
+          product_id: product.id,
+          quantity: product.quantity,
+        };
 
-      await db("purchases_products").insert(newPurchaseProduct);
+        const purchaseUpdated = {
+          ...purchase,
+          total_price: product.quantity * findProduct.price,
+        };
 
-      await db("purchase").update({
-        ...purchase,
-        total_price: product.quantity * findProduct.price,
-      });
+        await db("purchases_products").insert(addProduct);
+
+        await db("purchase").update(purchaseUpdated);
+      }
     }
   } catch (error) {
-    console.log("produto não encontrado")
+    throw new Error("problema no cadastro do produto");
   }
 }
 
 // getAllPurchases
 app.get("/purchase", async (req: Request, res: Response) => {
   try {
-    const result = await db("purchase");
+    const result = await db("purchase").innerJoin(
+      "products",
+      "purchases_products.product_id",
+      "=",
+      "products.id"
+    );
 
     res.status(200).send(result);
   } catch (error) {
