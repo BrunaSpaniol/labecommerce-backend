@@ -13,22 +13,33 @@ export type TUser = {
   name: string;
   email: string;
   password: string;
-  created_at: string;
+  createdAt: string;
 };
 
 export type TProduct = {
   id: ProductId;
   name: string;
   price: number;
-  description: string,
-  imageUrl: string,
-  category: Category;
+  description: string;
+  imageUrl: string;
 };
 
 export type TPurchase = {
   id: string;
   buyer: string;
-  totalPrice: number;
+  totalPrice?: number;
   createdAt?: number;
-  paid: number;
+  paid?: number;
+  products: TPurchaseProducts[];
+};
+
+export type TPurchaseProducts = {
+  id: string;
+  quantity: number;
+};
+
+export type TPurchaseProductsComplete = {
+  id: TPurchase["id"];
+  product_id: TProduct["id"];
+  quantity: number;
 };

@@ -21,14 +21,12 @@ CREATE TABLE
 CREATE TABLE
     purchase (
         id TEXT UNIQUE NOT NULL PRIMARY KEY,
-        total_price REAL NOT NULL,
-        paid INTEGER NOT NULL,
-        created_at TEXT,
+        total_price REAL DEFAULT (0.0) NOT NULL,
+        paid INTEGER DEFAULT (0) NOT NULL,
+        created_at TEXT NOT NULL DEFAULT(DATETIME()),
         delivered_at TEXT,
         buyer_id TEXT NOT NULL,
-        FOREIGN KEY (buyer_id) REFERENCES users(id)
-        ON UPDATE CASCADE
-        ON DELETE CASCADE
+        FOREIGN KEY (buyer_id) REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE
     );
 
 CREATE TABLE
@@ -37,10 +35,11 @@ CREATE TABLE
         product_id TEXT NOT NULL,
         quantity INTEGER DEFAULT (1) NOT NULL,
         FOREIGN KEY (purchase_id) REFERENCES purchase(id),
-        FOREIGN KEY (product_id) REFERENCES products(id)
-        ON UPDATE CASCADE
-        ON DELETE CASCADE
+        FOREIGN KEY (product_id) REFERENCES products(id) ON UPDATE CASCADE ON DELETE CASCADE
     );
+
+DROP TABLE purchases_products;
+DROP TABLE purchase;
 
 INSERT INTO
     users (id, name, email, password)
@@ -62,8 +61,44 @@ VALUES (
     );
 
 INSERT INTO
-    products (id, name, price, description, image_url)
-VALUES ("1", "Pão", 4.00, "food", "image.com"), ("2", "Café", 12.00, "food", "image.com"), ("3", "Manteiga", 30.00, "food", "image.com"), ("4", "Leite", 10.00, "food", "image.com"), ("5", "Queijo", 15.00, "food", "image.com");
+    products (
+        id,
+        name,
+        price,
+        description,
+        image_url
+    )
+VALUES (
+        "1",
+        "Pão",
+        4.00,
+        "food",
+        "image.com"
+    ), (
+        "2",
+        "Café",
+        12.00,
+        "food",
+        "image.com"
+    ), (
+        "3",
+        "Manteiga",
+        30.00,
+        "food",
+        "image.com"
+    ), (
+        "4",
+        "Leite",
+        10.00,
+        "food",
+        "image.com"
+    ), (
+        "5",
+        "Queijo",
+        15.00,
+        "food",
+        "image.com"
+    );
 
 -- createUser;
 
@@ -79,7 +114,13 @@ VALUES (
 --Create Product
 
 INSERT INTO
-    products(id, name, price, description, image_url)
+    products(
+        id,
+        name,
+        price,
+        description,
+        image_url
+    )
 VALUES (
         "23",
         "vassoura",
@@ -235,3 +276,5 @@ SELECT
 FROM purchase
     INNER JOIN users ON purchase.buyer_id
 WHERE users.id = "2";
+
+SELECT * FROM purchase;
