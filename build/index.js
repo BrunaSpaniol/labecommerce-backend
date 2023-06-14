@@ -57,12 +57,11 @@ app.get("/users", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
 }));
 app.post("/users", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { id, name, email, password, createdAt } = req.body;
+        const { id, name, email, password } = req.body;
         if (typeof id !== "string" ||
             typeof name !== "string" ||
             typeof email !== "string" ||
-            typeof password !== "string" ||
-            typeof createdAt !== ("string" || "null")) {
+            typeof password !== "string") {
             res.status(400);
             throw new Error("todos os inputs devem ser tipo string");
         }
@@ -82,8 +81,8 @@ app.post("/users", (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         const newUser = {
             id: id,
             name: name,
+            email: email,
             password: password,
-            created_at: createdAt,
         };
         yield (0, knex_1.db)("users").insert(newUser);
         res.status(200).send({ message: "Usuário criado com sucesso!" });
@@ -126,7 +125,7 @@ app.post("/products", (req, res) => __awaiter(void 0, void 0, void 0, function* 
             name: name,
             price: price,
             description: description,
-            imageUrl: imageUrl,
+            image_url: imageUrl,
         };
         yield knex_1.db.insert(newProduct).into("products");
         res.status(200).send({ message: "Produto criado com sucesso!" });
@@ -283,102 +282,47 @@ app.post("/purchase", (req, res) => __awaiter(void 0, void 0, void 0, function* 
     try {
         const { id, buyer, products } = req.body;
         if (typeof id !== "string" || typeof buyer !== "string") {
-            throw new Error("Todos os inputs devem ser do tipo correto");
+            res.status(400);
+            throw new Error("todos os inputs devem ser do tipo correto");
         }
         if (!id || !buyer) {
-            throw new Error("Todos os inputs devem ser preenchidos");
+            res.status(400);
+            throw new Error("todos os inputs devem ser preenchidos");
         }
-        const [purchaseExist] = yield (0, knex_1.db)("purchase").where({ id });
-        if (purchaseExist) {
+        const [purchaseExist] = yield (0, knex_1.db)("purchase").where({ id: id });
+        if (!!purchaseExist) {
+            res.status(400);
             throw new Error("O 'id' da compra já existe");
         }
         const [userExist] = yield (0, knex_1.db)("users").where({ id: buyer });
         if (!userExist) {
-            throw new Error("O usuário não existe");
+            res.status(400);
+            throw new Error("o usuário não existe");
         }
-        const newPurchase = {
-            id,
+        let newPurchase = {
+            id: id,
             buyer_id: buyer,
             total_price: 0,
         };
         yield knex_1.db.insert(newPurchase).into("purchase");
-        for (const product of products) {
-            yield insertProduct(product, newPurchase);
-        }
-        res.status(200).send("Compra cadastrada com sucesso!");
-    }
-    catch (error) {
-        console.log(error);
-        if (res.statusCode === 200) {
-            res.status(500);
-        }
-        if (error instanceof Error) {
-            res.send(error.message);
-        }
-        else {
-            res.send("Erro inesperado");
-        }
-    }
-}));
-function insertProduct(product, purchase) {
-    return __awaiter(this, void 0, void 0, function* () {
-        try {
-            const [findProduct] = yield (0, knex_1.db)("products").where({ id: product.id });
-            if (!findProduct) {
-                throw new Error("Produto não encontrado");
-            }
-            const [productExistinPurchase] = yield (0, knex_1.db)("purchases_products")
-                .where({
-                purchase_id: purchase.id,
-                product_id: product.id,
-            })
-                .innerJoin("products", "purchases_products.product_id", "=", "products.id");
-            const addProduct = {
-                purchase_id: purchase.id,
-                product_id: product.id,
+        const productsDB = yield Promise.all(products.map((product) => __awaiter(void 0, void 0, void 0, function* () {
+            const [productExist] = yield (0, knex_1.db)("products").where({
+                id: product.product_id,
+            });
+            newPurchase.total_price += productExist.price * product.quantity;
+            yield knex_1.db
+                .insert({
+                purchase_id: id,
+                product_id: productExist.id,
                 quantity: product.quantity,
-            };
-            const purchaseUpdated = Object.assign(Object.assign({}, purchase), { total_price: product.quantity * findProduct.price });
-            if (productExistinPurchase) {
-                const addQuantity = productExistinPurchase.quantity;
-                addProduct.quantity += addQuantity;
-                purchaseUpdated.total_price = addProduct.quantity * findProduct.price;
-                yield (0, knex_1.db)("purchases_products")
-                    .update(addProduct)
-                    .where({ product_id: product.id, purchase_id: purchase.id });
-            }
-            else {
-                yield (0, knex_1.db)("purchases_products").insert(addProduct);
-            }
-            yield (0, knex_1.db)("purchase").update(purchaseUpdated).where({ id: purchase.id });
-        }
-        catch (error) {
-            throw new Error("Problema no cadastro do produto");
-        }
-    });
-}
-app.get("/purchase", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const result = yield (0, knex_1.db)("purchase").innerJoin("products", "purchases_products.product_id", "=", "products.id");
-        res.status(200).send(result);
-    }
-    catch (error) {
-        console.log(error);
-        if (req.statusCode === 200) {
-            res.status(500);
-        }
-        if (error instanceof Error) {
-            res.send(error.message);
-        }
-        else {
-            res.send("Erro inesperado");
-        }
-    }
-}));
-app.get("/purchases_products", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const result = yield (0, knex_1.db)("purchases_products");
-        res.status(200).send(result);
+            })
+                .into("purchases_products");
+            return productExist;
+        })));
+        console.log(productsDB, "produtos promise.all");
+        console.log(newPurchase, "new purchase");
+        yield knex_1.db.update(newPurchase).into("purchase").where({ id: id });
+        res.status(200).send("Compra cadastrada com sucesso!");
     }
     catch (error) {
         console.log(error);
@@ -402,6 +346,14 @@ app.delete("/purchase/:id", (req, res) => __awaiter(void 0, void 0, void 0, func
         if (!isPurchaseExist) {
             res.status(404);
             throw new Error("Compra não cadastrada");
+        }
+        const isPurchasesProducts = yield (0, knex_1.db)("purchases_products").where({
+            purchase_id: id,
+        });
+        if (isPurchasesProducts.length > 0) {
+            yield (0, knex_1.db)("purchases_products").del().where({
+                purchase_id: id,
+            });
         }
         yield (0, knex_1.db)("purchase").del().where({
             id: id,

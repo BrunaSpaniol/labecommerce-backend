@@ -2,14 +2,7 @@ import { db } from "./database/knex";
 import express, { Request, Response } from "express";
 import cors from "cors";
 
-import type {
-  TProduct,
-  TPurchase,
-  TPurchaseProducts,
-  TPurchaseProductsComplete,
-  TPurchaseUpdate,
-  TUser,
-} from "./types";
+import type { TProduct, TPurchaseProducts, TUser } from "./types";
 
 const app = express();
 
@@ -72,14 +65,13 @@ app.get("/users", async (req: Request, res: Response) => {
 // postCreateUser
 app.post("/users", async (req: Request, res: Response) => {
   try {
-    const { id, name, email, password, createdAt }: TUser = req.body;
+    const { id, name, email, password }: TUser = req.body;
 
     if (
       typeof id !== "string" ||
       typeof name !== "string" ||
       typeof email !== "string" ||
-      typeof password !== "string" ||
-      typeof createdAt !== ("string" || "null")
+      typeof password !== "string"
     ) {
       res.status(400);
       throw new Error("todos os inputs devem ser tipo string");
@@ -114,8 +106,8 @@ app.post("/users", async (req: Request, res: Response) => {
     const newUser = {
       id: id,
       name: name,
+      email: email,
       password: password,
-      created_at: createdAt,
     };
 
     await db("users").insert(newUser);
@@ -169,7 +161,7 @@ app.post("/products", async (req: Request, res: Response) => {
       name: name,
       price: price,
       description: description,
-      imageUrl: imageUrl,
+      image_url: imageUrl,
     };
 
     await db.insert(newProduct).into("products");
@@ -352,10 +344,11 @@ app.put("/products/:id", async (req: Request, res: Response) => {
   }
 });
 
-//postCreatePurchase
+// CreatePurchase
+
 app.post("/purchase", async (req: Request, res: Response) => {
   try {
-    const { id, buyer, products }: TPurchase = req.body;
+    const { id, buyer, products }: any = req.body;
 
     if (typeof id !== "string" || typeof buyer !== "string") {
       res.status(400);
@@ -390,134 +383,30 @@ app.post("/purchase", async (req: Request, res: Response) => {
 
     await db.insert(newPurchase).into("purchase");
 
-    await Promise.all(
-      products.map(async (product) => {
-        try {
-          await insertProducts(product, newPurchase);
-        } catch (error) {
-          res.status(400);
-          throw new Error("problema no cadastro do produto");
-        }
+    const productsDB = await Promise.all(
+      products.map(async (product: TPurchaseProducts) => {
+        const [productExist] = await db("products").where({
+          id: product.product_id,
+        });
+        newPurchase.total_price += productExist.price * product.quantity;
+        await db
+          .insert({
+            purchase_id: id,
+            product_id: productExist.id,
+            quantity: product.quantity,
+          })
+          .into("purchases_products");
+        return productExist;
       })
     );
 
+    console.log(productsDB, "produtos promise.all");
+
+    console.log(newPurchase, "new purchase");
+
+    await db.update(newPurchase).into("purchase").where({ id: id });
+
     res.status(200).send("Compra cadastrada com sucesso!");
-  } catch (error) {
-    console.log(error);
-
-    if (req.statusCode === 200) {
-      res.status(500);
-    }
-
-    if (error instanceof Error) {
-      res.send(error.message);
-    } else {
-      res.send("Erro inesperado");
-    }
-  }
-});
-
-async function insertProducts(
-  product: TPurchaseProducts,
-  purchase: { id: string; buyer_id: string; total_price: number }
-): Promise<Awaited<void>> {
-  try {
-    const [findProduct] = await db("products").where({
-      id: product.id,
-    });
-
-    if (!findProduct) {
-      throw new Error("Produto não encontrado");
-    }
-
-    if (findProduct) {
-      const [productExistinPurchase] = await db("purchases_products")
-        .where({
-          purchase_id: purchase.id,
-        })
-        .andWhere({ product_id: product.id })
-        .innerJoin(
-          "products",
-          "purchases_products.product_id",
-          "=",
-          "products.id"
-        );
-
-      if (productExistinPurchase) {
-        const addQuantity: number = productExistinPurchase.quantity;
-
-        const addProduct = {
-          purchase_id: purchase.id,
-          product_id: product.id,
-          quantity: product.quantity + addQuantity,
-        };
-
-        const purchaseUpdated = {
-          ...purchase,
-          total_price: (product.quantity + addQuantity) * findProduct.price,
-        };
-
-        await db("purchases_products")
-          .update(addProduct)
-          .where({ product_id: product.id })
-          .andWhere({ purchase_id: purchase.id });
-
-        await db("purchase").update(purchaseUpdated).where({ id: purchase.id });
-      }
-      if (!productExistinPurchase) {
-        const addProduct = {
-          purchase_id: purchase.id,
-          product_id: product.id,
-          quantity: product.quantity,
-        };
-
-        const purchaseUpdated = {
-          ...purchase,
-          total_price: product.quantity * findProduct.price,
-        };
-
-        await db("purchases_products").insert(addProduct);
-
-        await db("purchase").update(purchaseUpdated);
-      }
-    }
-  } catch (error) {
-    throw new Error("problema no cadastro do produto");
-  }
-}
-
-// getAllPurchases
-app.get("/purchase", async (req: Request, res: Response) => {
-  try {
-    const result = await db("purchase").innerJoin(
-      "products",
-      "purchases_products.product_id",
-      "=",
-      "products.id"
-    );
-
-    res.status(200).send(result);
-  } catch (error) {
-    console.log(error);
-
-    if (req.statusCode === 200) {
-      res.status(500);
-    }
-
-    if (error instanceof Error) {
-      res.send(error.message);
-    } else {
-      res.send("Erro inesperado");
-    }
-  }
-});
-
-// getAllPurchases_products
-app.get("/purchases_products", async (req: Request, res: Response) => {
-  try {
-    const result = await db("purchases_products");
-
-    res.status(200).send(result);
   } catch (error) {
     console.log(error);
 
@@ -547,6 +436,16 @@ app.delete("/purchase/:id", async (req: Request, res: Response) => {
       throw new Error("Compra não cadastrada");
     }
 
+    const isPurchasesProducts = await db("purchases_products").where({
+      purchase_id: id,
+    });
+
+    if (isPurchasesProducts.length > 0) {
+      await db("purchases_products").del().where({
+        purchase_id: id,
+      });
+    }
+
     await db("purchase").del().where({
       id: id,
     });
@@ -566,6 +465,7 @@ app.delete("/purchase/:id", async (req: Request, res: Response) => {
   }
 });
 
+// GetPurchasesByID
 app.get("/purchases/:id", async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
