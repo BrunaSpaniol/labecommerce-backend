@@ -66,6 +66,10 @@ Endpoint para obter os detalhes de uma compra específica. Recebe o ID da compra
 
 .mensagem contendo um array de objetos com os detalhes de cada produto adquirido na compra.
 
+### LINK DA DOCUMENTAÇÂO NO POSTMAN:
+
+https://documenter.getpostman.com/view/24822927/2s93sf2Wg3
+
 ## Considerações Finais
 
 Este projeto fornece uma API básica para gerenciamento de usuários, produtos e compras. É um ponto de partida que pode ser expandido e aprimorado de acordo com as necessidades específicas de cada aplicação.
